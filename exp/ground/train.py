@@ -15,11 +15,13 @@ import utils.io as io
 from utils.constants import save_constants, Constants
 from .models.object_encoder import ObjectEncoder
 from .models.cap_encoder import CapEncoder
+from .models.multi_cap_encoder import MultiCapEncoder
 from .models.info_nce_loss import InfoNCE
 from .models.factored_cap_info_nce_loss import CapInfoNCE, KLayer, FLayer
 from .models.neg_noun_loss import compute_neg_noun_loss
 from .dataset import DetFeatDataset as CocoDataset
 from .dataset_flickr import FlickrDataset
+from .dataset_flickrjp import FlickrJPDataset
 
 
 def create_info_nce_criterion(x_dim,c_dim,d):
@@ -106,7 +108,9 @@ def train_model(model,dataloaders,exp_const,tb_writer):
                     data['caption'])
                 token_ids = torch.LongTensor(token_ids).cuda()
                 token_features, word_word_att = model.cap_encoder(token_ids)
-                noun_adj_token_ids = data['noun_adj_token_ids'].cuda()
+                noun_adj_token_ids = data['noun_adj_token_ids']
+                print(data['image_id'])
+                noun_adj_token_ids = torch.tensor(noun_adj_token_ids).cuda()
                 word_features, token_mask = model.cap_encoder.select_embed(
                     token_features,
                     noun_adj_token_ids)
@@ -120,7 +124,11 @@ def train_model(model,dataloaders,exp_const,tb_writer):
                         data['caption'])
                     token_ids = torch.LongTensor(token_ids).cuda()
                     token_features, word_word_att = model.cap_encoder(token_ids)
-                    noun_adj_token_ids = data['noun_adj_token_ids'].cuda()
+                    noun_adj_token_ids = data['noun_adj_token_ids']
+                    print(data['image_id'])
+                    noun_adj_token_ids = torch.tensor(noun_adj_token_ids).cuda()
+                    print(noun_adj_token_ids.size())
+                    print(noun_adj_token_ids)
                     word_features, token_mask = model.cap_encoder.select_embed(
                         token_features,
                         noun_adj_token_ids)
@@ -336,7 +344,7 @@ def eval_model(model,dataloader,exp_const,step):
     return eval_results
 
 
-def main(exp_const,data_const,model_const):
+def main(exp_const,data_const,model_const,multi):
     np.random.seed(exp_const.seed)
     torch.manual_seed(exp_const.seed)
     torch.backends.cudnn.deterministic = True
@@ -361,7 +369,10 @@ def main(exp_const,data_const,model_const):
     model = Constants()
     model.const = model_const
     model.object_encoder = ObjectEncoder(model.const.object_encoder)
-    model.cap_encoder = CapEncoder(model.const.cap_encoder)
+    if not multi:
+        model.cap_encoder = CapEncoder(model.const.cap_encoder)
+    else:
+        model.cap_encoder = MultiCapEncoder(model.const.cap_encoder)
     if exp_const.random_lang is True:
         model.cap_encoder.random_init()
 
@@ -407,6 +418,8 @@ def main(exp_const,data_const,model_const):
         Dataset = CocoDataset
     elif exp_const.dataset=='flickr':
         Dataset = FlickrDataset
+    elif exp_const.dataset=='flickrjp':
+        Dataset = FlickrJPDataset
     else:
         msg = f'{exp_const.dataset} not implemented'
         raise NotImplementedError(msg)

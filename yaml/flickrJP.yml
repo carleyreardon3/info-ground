@@ -1,9 +1,9 @@
-downloads_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30k_downloads
+downloads_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30kJP_downloads
 anno_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30k_downloads/Annotations
-sent_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30k_downloads/Sentences
-exp_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr_exp
-proc_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30k_proc
-local_proc_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30k_proc
+sent_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30kJP_downloads/Sentences_jp_v2
+exp_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickrJP_exp
+proc_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30kJP_proc
+local_proc_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30kJP_proc
 image_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30k_images
 det_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/flickr30k_proc/bottomup_flickr_detections/bottomup_flickr_detections
 

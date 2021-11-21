@@ -6,6 +6,7 @@ LAYERS=2
 python -m exp.ground.run.eval_flickr_phrase_loc \
     --exp_name $EXP_NAME \
     --dataset $DATASET \
+    --multi \
     --model_num -100 \
     --no_context \
     --cap_info_nce_layers $LAYERS \

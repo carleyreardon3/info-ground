@@ -7,13 +7,15 @@ import torch
 import torch.nn as nn
 import itertools
 import numpy as np
-
+import MeCab
 import utils.io as io
 from utils.constants import save_constants, Constants
 from .models.object_encoder import ObjectEncoder
 from .models.cap_encoder import CapEncoder
+from .models.multi_cap_encoder import MultiCapEncoder
 from .models.factored_cap_info_nce_loss import CapInfoNCE, KLayer, FLayer
 from exp.eval_flickr.dataset import FlickrDataset
+from exp.eval_flickr.datasetjp import FlickrJPDataset
 from utils.bbox_utils import compute_iou, point_in_box, compute_center
 from .train import create_cap_info_nce_criterion
 
@@ -51,9 +53,13 @@ def combine_tokens(tokens,words):
     return combined_tokens
         
 
-def map_phrase_to_tokens(phrase_info,combined_tokens):
+def map_phrase_to_tokens(phrase_info,combined_tokens,multi):
     phrase = phrase_info['phrase']
-    num_words = len(phrase.split())
+    if not multi:
+        num_words = len(phrase.split())
+    else:
+        mecab_tokenizer = MeCab.Tagger("-Owakati")
+        num_words = len(mecab_tokenizer.parse(phrase).split())
     start_idx = phrase_info['first_word_index']
     token_ids = set()
     for i in range(num_words):
@@ -118,7 +124,7 @@ def compute_pt_acc(pred_boxes,gt_boxes):
     return float(pt_recalled)
 
 
-def eval_model(model,dataset,exp_const):
+def eval_model(model,dataset,exp_const,multi):
     # Set mode
     model.object_encoder.eval()
     model.cap_encoder.eval()
@@ -156,13 +162,18 @@ def eval_model(model,dataset,exp_const):
 
         token_obj_att = token_obj_att[0,0]
         tokens = tokens[0]
-        words = data['caption'].split()
+        if not multi:
+            words = data['caption'].split()
+        else:
+            mecab_tokenizer = MeCab.Tagger("-Owakati")
+            words = mecab_tokenizer.parse(data['caption']).split()
         combined_tokens = combine_tokens(tokens,words)
         
         for phrase_info in data['phrases']:
             phrase_token_ids = map_phrase_to_tokens(
                 phrase_info,
-                combined_tokens)
+                combined_tokens,
+                multi)
 
             phrase_att = combine_att(token_obj_att,phrase_token_ids)
             pred_boxes = select_boxes(data['boxes'],phrase_att,k=Ks[-1])
@@ -206,7 +217,7 @@ def eval_model(model,dataset,exp_const):
     return results
 
 
-def main(exp_const,data_const,model_const):
+def main(exp_const,data_const,model_const,multi):
     np.random.seed(exp_const.seed)
     torch.manual_seed(exp_const.seed)
     torch.backends.cudnn.deterministic = True
@@ -216,7 +227,10 @@ def main(exp_const,data_const,model_const):
     model = Constants()
     model.const = model_const
     model.object_encoder = ObjectEncoder(model.const.object_encoder)
-    model.cap_encoder = CapEncoder(model.const.cap_encoder)
+    if multi is True:
+        model.cap_encoder = MultiCapEncoder(model.const.cap_encoder)
+    else:
+        model.cap_encoder = CapEncoder(model.const.cap_encoder)
     
     o_dim = model.object_encoder.const.object_feature_dim
     if exp_const.contextualize==True:
@@ -244,10 +258,13 @@ def main(exp_const,data_const,model_const):
     model.lang_sup_criterion.cuda()
 
     print('Creating dataloader ...')
-    dataset = FlickrDataset(data_const)
+    if multi is True:
+        dataset = FlickrJPDataset(data_const)
+    else:
+        dataset = FlickrDataset(data_const)
 
     with torch.no_grad():
-        results = eval_model(model,dataset,exp_const)
+        results = eval_model(model,dataset,exp_const,multi)
 
     filename = os.path.join(
         exp_const.exp_dir,

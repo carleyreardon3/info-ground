@@ -3,7 +3,7 @@ import click
 from tqdm import tqdm
 
 import utils.io as io
-from .constants import FlickrConstants
+from .constants import FlickrJPConstants
 from .flickr30k_entities_utils import get_annotations, get_sentence_data
 
 
@@ -15,9 +15,9 @@ from .flickr30k_entities_utils import get_annotations, get_sentence_data
     help='Subset to preprocess')
 def main(**kwargs):
     subset = kwargs['subset']
-    const = FlickrConstants()
+    const = FlickrJPConstants()
     
-    io.mkdir_if_not_exists(const.flickr_paths['proc_dir'])
+    io.mkdir_if_not_exists(const.flickr_jp_paths['proc_dir'])
     
     image_ids = io.read(const.subset_ids[subset])
     image_ids = [idx.decode() for idx in image_ids.split()]
@@ -25,7 +25,7 @@ def main(**kwargs):
     # Write boxes to json
     boxes = {}
     for image_id in tqdm(image_ids):
-        box_xml = os.path.join(const.flickr_paths['anno_dir'],f'{image_id}.xml')
+        box_xml = os.path.join(const.flickr_jp_paths['anno_dir'],f'{image_id}.xml')
         boxes[image_id] = get_annotations(box_xml)
 
     io.dump_json_object(boxes,const.box_json[subset])
@@ -34,7 +34,7 @@ def main(**kwargs):
     sent = {}
     for image_id in tqdm(image_ids):
         sent_txt = os.path.join(
-            const.flickr_paths['sent_dir'],
+            const.flickr_jp_paths['sent_dir'],
             f'{image_id}.txt')
         sent[image_id] = get_sentence_data(sent_txt)
 

@@ -1,10 +1,10 @@
 # Locations where downloaded and extracted files would be stored
-downloads_dir: /shared/rsaas/tgupta6/Data/info-ground/coco_downloads
-proc_dir: /shared/rsaas/tgupta6/Data/info-ground/coco_proc
-exp_dir: /shared/rsaas/tgupta6/Data/info-ground/coco_exp
-image_dir: /data/tgupta6/info-ground/coco_images
-local_proc_dir: /data/tgupta6/info-ground/coco_proc
-det_dir: /data/tgupta6/info-ground/coco_proc/bottomup_coco_detections
+downloads_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/coco_downloads
+proc_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/coco_proc
+exp_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/coco_exp
+image_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/coco_images
+local_proc_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/coco_proc
+det_dir: /projectnb/cs591-mm-ml/reardonc/info-ground/coco_proc/bottomup_coco_detections/bottomup_coco_detections
 
 # Urls to download data from
 urls:

@@ -3,10 +3,12 @@ import click
 
 import utils.io as io
 from utils.constants import Constants, ExpConstants
-from global_constants import coco_paths, flickr_paths
+from global_constants import coco_paths, flickr_paths, flickr_jp_paths
 from exp.eval_flickr.dataset import  FlickrDatasetConstants
+from exp.eval_flickr.datasetjp import  FlickrJPDatasetConstants
 from ..models.object_encoder import ObjectEncoderConstants
 from ..models.cap_encoder import CapEncoderConstants
+from ..models.multi_cap_encoder import MultiCapEncoderConstants
 from .. import eval_flickr_phrase_loc
 
 @click.command()
@@ -17,8 +19,12 @@ from .. import eval_flickr_phrase_loc
 @click.option(
     '--dataset',
     default='coco',
-    type=click.Choice(['coco','flickr']),
+    type=click.Choice(['coco','flickr','flickrjp']),
     help='Dataset to use')
+@click.option(
+    '--multi',
+    is_flag=True,
+    help='Apply flag for multilingual data')
 @click.option(
     '--model_num',
     default=-1,
@@ -45,20 +51,28 @@ def main(**kwargs):
     exp_base_dir = coco_paths['exp_dir']
     if kwargs['dataset']=='flickr':
         exp_base_dir = flickr_paths['exp_dir']
+    elif kwargs['dataset']=='flickrjp':
+        exp_base_dir = flickr_jp_paths['exp_dir']
     exp_const = ExpConstants(kwargs['exp_name'],exp_base_dir)
     exp_const.model_dir = os.path.join(exp_const.exp_dir,'models')
     exp_const.seed = 0
     exp_const.contextualize = not kwargs['no_context']
     exp_const.random_lang = kwargs['random_lang']
 
-    data_const = FlickrDatasetConstants(kwargs['subset'])
+    if kwargs['multi'] is True:
+        data_const = FlickrJPDatasetConstants(kwargs['subset'])
+    else:
+        data_const = FlickrDatasetConstants(kwargs['subset'])
 
     model_const = Constants()
     model_const.model_num = kwargs['model_num']
     model_const.object_encoder = ObjectEncoderConstants()
     model_const.object_encoder.context_layer.output_attentions = True
     model_const.object_encoder.object_feature_dim = 2048
-    model_const.cap_encoder = CapEncoderConstants()
+    if kwargs['multi'] is True:
+        model_const.cap_encoder = MultiCapEncoderConstants()
+    else:
+        model_const.cap_encoder = CapEncoderConstants()
     model_const.cap_encoder.output_attentions = True
     model_const.cap_info_nce_layers = kwargs['cap_info_nce_layers']
     if model_const.model_num==-100:
@@ -80,7 +94,7 @@ def main(**kwargs):
             exp_const.model_dir,
             f'cap_encoder_{model_const.model_num}')
 
-    eval_flickr_phrase_loc.main(exp_const,data_const,model_const)
+    eval_flickr_phrase_loc.main(exp_const,data_const,model_const,kwargs['multi'])
 
 
 if __name__=='__main__':

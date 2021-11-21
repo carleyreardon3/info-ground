@@ -9,6 +9,10 @@ flickr_paths = yaml.load(
     open('yaml/flickr.yml','r'),
     Loader=yaml.FullLoader)
 
+flickr_jp_paths = yaml.load(
+    open('yaml/flickrJP.yml','r'),
+    Loader=yaml.FullLoader)
+
 misc_paths = yaml.load(
     open('yaml/misc.yml','r'),
     Loader=yaml.FullLoader)
